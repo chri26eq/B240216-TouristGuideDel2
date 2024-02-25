@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" >
+    <title th:text="${attraction.name}"></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+
+<body>
+<h1>Tourist Guide</h1>
+<h2 th:text="${name}"></h2>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th th:text="${attraction.name}">Attraction Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Description</td>
+        <td th:text="${attraction.description}">Attraction description</td>
+    </tr>
+    <tr>
+        <td>Address</td>
+        <td>
+        <a th:href="@{https://www.google.com/maps/place/{attractionAddress}(attractionAddress=${address})}" th:text="${attraction.address}" target="_blank">Attraction Address</a>
+        </td>
+    </tr>
+    <tr>
+        <td>Tags</td>
+        <td>
+
+      <span th:each="tag : ${attraction.tags}">
+            <span th:text="${tag} + ' '"></span><br>
+        </span>
+        </td>
+    </tr>
+
+
+    </tbody>
+</table>
+<form>
+    <a th:href="@{'/attractions'}">
+        <button type="button">Go Back</button>
+    </a>
+</form>
+</body>
+</html>

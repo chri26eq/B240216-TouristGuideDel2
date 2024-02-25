@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Attractions</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+
+<body>
+<h1>Tourist Guide</h1>
+<h2>All attractions</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Attractions</th>
+        <th>Description</th>
+        <th>Address</th>
+        <th>Tags</th>
+        <th></th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="attraction : ${attractionList}">
+        <td>
+            <a th:href="@{/attractions/{attractionName}(attractionName=${attraction.name})}"
+               th:text="${attraction.name}">Attraction Name</a>
+        </td>
+        <td th:text="${attraction.description}" style="width: 50%;"></td>
+        <td>
+            <a th:href="@{https://www.google.com/maps/place/{attractionAddress}(attractionAddress=${attraction.address})}"
+               th:text="${attraction.address}" target="_blank">Attraction Address</a>
+        </td>
+        <td>
+            <a th:href="@{/attractions/tags/{attractionName}(attractionName=${attraction.name})}">
+                <button type="button" th:text="Tags">Open Tags Link</button>
+            </a>
+        </td>
+        <td>
+            <a th:href="@{/attractions/{attractionName}/edit(attractionName=${attraction.name})}">
+                <button type="button" th:text="Edit">Edit Attraction Link</button>
+            </a>
+        </td>
+        <td>
+            <a th:href="@{/attractions/{attractionName}/delete(attractionName=${attraction.name})}">
+                <button class="delete-button" type="button" th:text="Delete">Delete Attraction Link</button>
+            </a>
+        </td>
+
+    </tr>
+    </tbody>
+</table>
+<form>
+    <a th:href="@{'/attractions/add'}">
+        <button type="button">Add attraction</button>
+    </a>
+</form>
+
+</body>
+</html>

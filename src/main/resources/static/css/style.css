@@ -1,0 +1,43 @@
+
+.address {
+    align-content: baseline;
+}
+
+input, textarea, select {
+    border: 2px solid;
+    border-radius: 5px;
+
+}
+
+body {
+    background-color: #fdf0d5;
+    color: black;
+}
+
+table, th, td {
+
+    border: 2px solid black;
+    border-collapse: collapse;
+    padding: 5px;
+}
+
+th {
+    border-bottom: 3px solid;
+}
+
+.delete-button {
+/ / color: red;
+    background-color: red;
+}
+
+@media screen and (max-width: 600px) {
+    table {
+        width: 100%; /* Fuld bredde på mindre skærme */
+    }
+}
+
+@media screen and (min-width: 601px) {
+    table {
+        width: 50%; /* Halv bredde på større skærme */
+    }
+}
