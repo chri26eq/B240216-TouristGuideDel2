@@ -3,11 +3,8 @@ package com.example.touristguide.service;
 import com.example.touristguide.model.Attraction;
 import com.example.touristguide.repository.TouristRepository;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Attr;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class TouristService {
@@ -30,12 +27,12 @@ public class TouristService {
         repository.addAttraction(attraction);
     }
 
-    public void updateAttraction(Attraction attraction) {
-        repository.updateAttraction(attraction);
+    public void updateAttraction(Attraction editedAttraction) {
+        repository.updateAttraction(editedAttraction);
     }
 
-    public void deleteAttraction(String name) {
-        repository.deleteAttraction(name);
+    public void deleteAttraction(String attractionName) {
+        repository.deleteAttraction(attractionName);
     }
 
 
@@ -43,8 +40,8 @@ public class TouristService {
         return repository.getAllTags();
     }
 
-    public List<String> getAllTowns() {
-        return repository.getAllTowns();
+    public List<String> getAllCities() {
+        return repository.getAllCities();
     }
 
 }

@@ -5,7 +5,6 @@ import com.example.touristguide.service.TouristService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -44,9 +43,9 @@ public class TouristController {
     @GetMapping("/add")
     public String showAddAttractionForm(Model model) {
         List<String> allTags = service.getAllTags();
-        List<String> allTowns = service.getAllTowns();
+        List<String> allCities = service.getAllCities();
         model.addAttribute("allTags", allTags);
-        model.addAttribute("allTowns", allTowns);
+        model.addAttribute("allCities", allCities);
         return "add";
     }
 
@@ -69,7 +68,7 @@ public class TouristController {
     public String editAttraction(@PathVariable("name") String name, Model model) {
         Attraction attraction = service.findByName(name);
         List<String> allTags = service.getAllTags();
-        List<String> allTowns = service.getAllTowns();
+        List<String> allTowns = service.getAllCities();
         model.addAttribute("attraction", attraction);
         model.addAttribute("allTags", allTags);
         model.addAttribute("allTowns", allTowns);

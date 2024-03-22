@@ -22,23 +22,23 @@
     </p>
 
     <p>
-    <label class="address" for="street">Street:</label>
-    <input class="address" type="text" id="street" name="street" th:field="*{street}"><br>
+    <label class="city" for="street">Street:</label>
+    <input class="city" type="text" id="street" name="street" th:field="*{street}"><br>
     </p>
 
     <p>
-    <label class="address" for="streetnr">Street-Nr.:</label>
-    <input class="address" type="text" id="streetnr" name="streetNr" th:field="*{streetNr}"><br>
+    <label class="city" for="streetnr">Street-Nr.:</label>
+    <input class="city" type="text" id="streetnr" name="streetNr" th:field="*{streetNr}"><br>
     </p>
 
     <p>
-    <label class="address" for="zipcode">ZIP-Code:</label>
-    <input class="address" type="number" id="zipcode" name="zipCode" th:field="*{zipCode}"><br>
+    <label class="city" for="zipcode">ZIP-Code:</label>
+    <input class="city" type="number" id="zipcode" name="zipCode" th:field="*{zipCode}"><br>
     </p>
 
     <p>
-    <label class="address" for="town">Town</label>
-    <select class="address" id="town" name="town" th:field="*{town}">
+    <label class="city" for="town">Town</label>
+    <select class="city" id="town" name="town" th:field="*{city}">
         <option th:each="town : ${allTowns}" th:value="${town}" th:text="${town}"></option>
     </select>
     </p>

@@ -1,80 +1,284 @@
 package com.example.touristguide.repository;
 
 import com.example.touristguide.model.Attraction;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Repository
 public class TouristRepository {
+    @Value("${spring.datasource.url}")
+    private String url;
+    @Value("${spring.datasource.username}")
+    private String userName;
+    @Value("${spring.datasource.password}")
+    private String password;
 
-    List<Attraction> attractionList;
-
-    public TouristRepository() {
-        attractionList = new ArrayList<>();
-
-        attractionList.add(new Attraction("Kronborg Castle", "An impressive Renaissance castle, famously known as Hamlet's castle. It is a UNESCO World Heritage Site, attracting visitors with its history and architecture.", "Kronborg", "1B", "3000", "Helsingør", Set.of("castle", "history", "museum")));
-        attractionList.add(new Attraction("M S Maritime Museum of Denmark", "A maritime museum showcasing Denmark's maritime history. The museum features an impressive collection of ships, models, and artifacts.", "Ny Kronborgvej", "1", "3000", "Helsingør", Set.of("museum", "maritime", "history")));
-        attractionList.add(new Attraction("Helsingør Cathedral (St. Olai Church)", "A beautiful cathedral, also known as St. Olai Church, dating back to the 13th century. The church boasts impressive architecture and artworks.", "Sct. Anna Gade", "36", "3000", "Helsingør", Set.of("cathedral", "church", "history")));
-        attractionList.add(new Attraction("Kulturværftet", "A cultural center by the waterfront hosting theater performances, concerts, and art exhibitions. It is a vibrant hub for culture and entertainment.", "Allegade", "2", "3000", "Helsingør", Set.of("culture", "arts", "events", "food", "indoors")));
-        attractionList.add(new Attraction("Øresund Aquarium", "An aquarium focusing on the marine life of the Øresund region. Visitors can explore a wide range of sea creatures and learn about the marine ecosystem.", "Strandpromenaden", "5", "3000", "Helsingør", Set.of("aquarium", "education", "indoors")));
-        attractionList.add(new Attraction("Louisiana Museum of Modern Art", "An internationally renowned museum of modern and contemporary art. Located by the sea, the museum offers a unique cultural experience with its impressive art collection and scenic surroundings.", "Gl. Strandvej", "13", "3050", "Humlebæk", Set.of("museum", "art", "scenic")));
-        attractionList.add(new Attraction("Hammermøllen", "Hammermøllen is a historic watermill located in Hellebæk. The mill has a fascinating history and beautiful surroundings next to the stream.", "Bøssemagergade", "21", "3050", "Hellebæk", Set.of("watermill", "history", "scenic", "forest", "nature")));
-        attractionList.add(new Attraction("Skibstrup Recycling Center", "A recycling center located in Ålsgårde, providing the opportunity for proper disposal of waste and recycling. Contribute to environmentally friendly practices by reusing and recycling materials.", "Gørlundevej", "4", "3140", "Ålsgårde", Set.of("recycling", "environment", "sustainability")));
-
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, userName, password);
+    }
+    private Attraction buildAttraction(ResultSet rs) throws SQLException {
+        String name = rs.getString("attr_name");
+        String description = rs.getString("attr_description");
+        String city = rs.getString("city_name");
+        List<String> tagList = buildTagList(name);
+        return new Attraction(name, description, city, tagList);
     }
 
 
-    public void addAttraction(Attraction attraction) {
-        attraction.addCustomTagsToTags();
-        attractionList.add(attraction);
-    }
-
-    public void updateAttraction(Attraction editedAttraction) {
-        editedAttraction.addCustomTagsToTags();
-        Attraction oldAttraction = findByName(editedAttraction.getName());
-
-        oldAttraction.copyAttractionAttributes(editedAttraction);
-    }
-
-    public void deleteAttraction(String name) {
-        attractionList.remove(findByName(name));
-    }
-
-
-    public Attraction findByName(String name) {
-        for (Attraction attraction : attractionList) {
-            if (name.trim().equalsIgnoreCase(attraction.getName().trim())) {
-                return attraction;
+    // build tag list -------------------------
+    private List<String> buildTagList(String attractionName) throws SQLException {
+        List<String> tagList = new ArrayList<>();
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps = connection.prepareStatement("""
+                        select tag_name from attraction
+                        natural join attraction_tags
+                        natural join tag
+                        where attraction.attr_name = ?;""");
+        ) {
+            ps.setString(1, attractionName);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                tagList.add(rs.getString("tag_name"));
             }
-
         }
-        return null;
+        return tagList;
     }
 
+    // get attraction list  -------------------------
 
     public List<Attraction> getAttractionList() {
+        List<Attraction> attractionList = new ArrayList<>();;
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps = connection.prepareStatement("""
+                        select * from attraction
+                        natural join city;""")
+        ) {
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                attractionList.add(buildAttraction(rs));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
         return attractionList;
     }
 
-    public List<String> getAllTags() {
-        Set<String> tagSet = new HashSet<>();
-        for (Attraction attraction : attractionList) {
-            tagSet.addAll(attraction.getTags());
+    // add attraction -------------------------
+
+    public void addAttraction(Attraction attraction) {
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps1 = connection.prepareStatement("""
+                        INSERT ignore INTO attraction (city_id, attr_name, attr_description)
+                        values ((select city_id from city where city_name = ?), ?, ?);""");
+        ) {
+            ps1.setString(1, attraction.getCity());
+            ps1.setString(2, attraction.getName());
+            ps1.setString(3, attraction.getDescription());
+            int rowsAffected = ps1.executeUpdate();
+            if (rowsAffected != 0) {
+                try (
+                        // insert attr tags in all tags list
+                        PreparedStatement ps2 = connection.prepareStatement("""
+                                INSERT ignore INTO tag (tag_name)
+                                values (?);""");
+                ) {
+                    for (String tag : attraction.getTags()) {
+                        ps2.setString(1, tag);
+                        ps2.executeUpdate();
+                    }
+                }
+                try (
+                        // insert attr_id and tag_id in attraction_tags
+                        PreparedStatement ps3 = connection.prepareStatement("""
+                                INSERT INTO attraction_tags
+                                VALUES (
+                                (select attr_id from attraction
+                                where attr_name = ?),
+                                (select tag_id from tag
+                                where tag_name = ?)
+                                );""");
+                ) {
+                    for (String tag : attraction.getTags()) {
+                        ps3.setString(1, attraction.getName());
+                        ps3.setString(2, tag);
+                        ps3.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        return new ArrayList<>(tagSet);
     }
 
-    public List<String> getAllTowns() {
-        Set<String> townSet = new HashSet<>();
-        for (Attraction attraction : attractionList) {
-            townSet.add(attraction.getTown());
+    // update attraction -------------------------
+
+    public void updateAttraction(Attraction attraction
+    ) {
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps1 = connection.prepareStatement("""
+                        UPDATE attraction
+                        SET city_id =
+                        (select city_id from city where city_name = ?),
+                        attr_name = ?,
+                        attr_description = ?
+                        WHERE attr_id =
+                        (select attr_id from attraction where attr_name = ?);""")
+        ) {
+            ps1.setString(1, attraction.getCity());
+            ps1.setString(2, attraction.getName());
+            ps1.setString(3, attraction.getDescription());
+            ps1.setString(4, attraction.getName());
+            int rowsAffected = ps1.executeUpdate();
+            if (rowsAffected != 0) {
+                try (
+                        PreparedStatement ps2 = connection.prepareStatement("""
+                                INSERT ignore INTO tag (tag_name)
+                                values (?);""")
+                ) {
+                    for (String tag : attraction.getTags()) {
+                        ps2.setString(1, tag);
+                        ps2.executeUpdate();
+                    }
+                }
+
+                try (
+                        PreparedStatement ps3 = connection.prepareStatement("""
+                                delete from attraction_tags
+                                where attr_id =
+                                (select attr_id from attraction
+                                where attr_name = ?);""")
+                ) {
+                    ps3.setString(1, attraction.getName());
+                    ps3.executeUpdate();
+                }
+                try (
+                        PreparedStatement ps4 = connection.prepareStatement("""
+                                INSERT INTO attraction_tags
+                                VALUES (
+                                (select attr_id from attraction
+                                where attr_name = ?),
+                                (select tag_id from tag
+                                where tag_name = ?)
+                                );""")
+                ) {
+                    for (String tag : attraction.getTags()) {
+                        ps4.setString(1, attraction.getName());
+                        ps4.setString(2, tag);
+                        ps4.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        return new ArrayList<>(townSet);
     }
+
+    // delete attraction -------------------------
+
+    public void deleteAttraction(String attractionName) {
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps1 = connection.prepareStatement("""
+                        delete from attraction_tags
+                        where attr_id =
+                        (select attr_id from attraction
+                        where attr_name = ?);""");
+        ) {
+            ps1.setString(1, attractionName);
+            ps1.executeUpdate();
+            try (
+                    PreparedStatement ps2 = connection.prepareStatement("""
+                            delete from attraction
+                            where attr_id =
+                            (select attr_id from attraction
+                            where attr_name = ?);""");
+            ) {
+                ps2.setString(1, attractionName);
+                ps2.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // find attraction by name -------------------------
+
+    public Attraction findByName(String name) {
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps = connection.prepareStatement("""
+                        select * from attraction
+                        natural join city
+                        where attr_name = ?;""")
+        ) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            //rs.next();
+            if (rs.next()) {
+                return buildAttraction(rs);
+            }
+            else return null;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // get all tags -------------------------
+
+
+    public List<String> getAllTags() {
+        List<String> tagList = new ArrayList<>();
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps = connection.prepareStatement("""
+                        SELECT tag_name FROM tag;""")
+        ) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                tagList.add(rs.getString("tag_name"));
+            }
+            return tagList;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    // get all tags -------------------------
+
+
+    public List<String> getAllCities() {
+        List<String> cityList = new ArrayList<>();
+        try (
+                Connection connection = getConnection();
+                PreparedStatement ps = connection.prepareStatement("""
+                    SELECT city_name FROM city;""")
+                ) {
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                cityList.add(rs.getString("city_name"));
+            }
+            return cityList;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
+
+
 }
 
 

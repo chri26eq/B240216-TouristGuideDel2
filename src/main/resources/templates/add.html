@@ -22,21 +22,9 @@
     </p>
 
     <p>
-        <label class="address" for="street">Street:</label>
-        <input class="address" type="text" id="street" name="street" required>
-    </p>
-    <p>
-        <label class="address" for="streetnr">Street-Nr.:</label>
-        <input class="address" type="text" id="streetnr" name="streetNr" required>
-    </p>
-    <p>
-        <label class="address" for="zipcode">ZIP-Code:</label>
-        <input class="address" type="number" id="zipcode" name="zipCode" required>
-    </p>
-    <p>
-        <label class="address" for="town">Town</label>
-        <select class="address" id="town" name="town">
-            <option th:each="town : ${allTowns}" th:text="${town}" th:value="${town}"></option>
+        <label class="city" for="city">Town</label>
+        <select class="city" id="city" name="city">
+            <option th:each="city : ${allCities}" th:text="${city}" th:value="${city}"></option>
         </select>
     </p>
 
