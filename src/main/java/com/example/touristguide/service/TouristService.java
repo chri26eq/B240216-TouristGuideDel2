@@ -24,10 +24,12 @@ public class TouristService {
     }
 
     public void addAttraction(Attraction attraction) {
+        attraction.prepareAttraction();
         repository.addAttraction(attraction);
     }
 
     public void updateAttraction(Attraction editedAttraction) {
+        editedAttraction.prepareAttraction();
         repository.updateAttraction(editedAttraction);
     }
 

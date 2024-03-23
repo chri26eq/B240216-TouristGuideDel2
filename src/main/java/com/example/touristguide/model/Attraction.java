@@ -1,8 +1,8 @@
 package com.example.touristguide.model;
 
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Attraction {
 
@@ -10,35 +10,36 @@ public class Attraction {
     private String description;
     private String city;
     private List<String> tags;
-    private String newTagsString;
-
+    private String newRawTagsString;
 
 
     public Attraction(String name, String description, String city, List<String> tags) {
-        this.name = name.trim();
-        this.description = description.trim();
-        this.city = city.trim();
+        this.name = name;
+        this.description = description;
+        this.city = city;
         this.tags = tags;
 
     }
 
-        private void addNewTagsToTags() {
+    public void prepareAttraction() {
+        addNewTagsToTags();
+        trimAll();
+    }
 
-        if (!newTagsString.isBlank()){
-            List<String> newTagsList = new ArrayList<>(List.of(newTagsString.split(",")));
-            newTagsList = newTagsList.stream().map(String::trim).collect(Collectors.toList());
-
+    private void addNewTagsToTags() {
+        if (newRawTagsString != null) {
+            List<String> newRawTagList = List.of(newRawTagsString.split(","));
+            if (tags == null) tags = new ArrayList<>();
+            for (String s : newRawTagList) {
+                if (!s.isBlank()) tags.add(s.trim());
+            }
+            newRawTagsString = null;
         }
-        }
+    }
 
-
-
-    public void copyAttractionAttributes(Attraction attraction) {
-        this.name = attraction.name.trim();
-        this.description = attraction.description.trim();
-        this.city = attraction.city.trim();
-        this.tags = attraction.tags;
-
+    private void trimAll() {
+        name = name.trim();
+        description = description.trim();
     }
 
     public String getName() {
@@ -73,11 +74,11 @@ public class Attraction {
         this.tags = tags;
     }
 
-    public String getNewTagsString() {
-        return newTagsString;
+    public String getNewRawTagsString() {
+        return newRawTagsString;
     }
 
-    public void setNewTagsString(String newTagsString) {
-        this.newTagsString = newTagsString;
+    public void setNewRawTagsString(String newRawTagsString) {
+        this.newRawTagsString = newRawTagsString;
     }
 }

@@ -69,10 +69,10 @@ public class TouristController {
     public String editAttraction(@PathVariable("name") String name, Model model) {
         Attraction attraction = service.findByName(name);
         List<String> allTags = service.getAllTags();
-        List<String> allTowns = service.getAllCities();
+        List<String> allCities = service.getAllCities();
         model.addAttribute("attraction", attraction);
         model.addAttribute("allTags", allTags);
-        model.addAttribute("allTowns", allTowns);
+        model.addAttribute("allCities", allCities);
         return "edit";
     }
 

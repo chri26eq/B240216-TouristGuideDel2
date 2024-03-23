@@ -22,24 +22,9 @@
     </p>
 
     <p>
-    <label class="city" for="street">Street:</label>
-    <input class="city" type="text" id="street" name="street" th:field="*{street}"><br>
-    </p>
-
-    <p>
-    <label class="city" for="streetnr">Street-Nr.:</label>
-    <input class="city" type="text" id="streetnr" name="streetNr" th:field="*{streetNr}"><br>
-    </p>
-
-    <p>
-    <label class="city" for="zipcode">ZIP-Code:</label>
-    <input class="city" type="number" id="zipcode" name="zipCode" th:field="*{zipCode}"><br>
-    </p>
-
-    <p>
-    <label class="city" for="town">Town</label>
-    <select class="city" id="town" name="town" th:field="*{city}">
-        <option th:each="town : ${allTowns}" th:value="${town}" th:text="${town}"></option>
+    <label class="city" for="city">Town</label>
+    <select class="city" id="city" name="city" th:field="*{city}">
+        <option th:each="city : ${allCities}" th:value="${city}" th:text="${city}"></option>
     </select>
     </p>
 
@@ -50,7 +35,7 @@
 
     <p>
     <label for="addedTags">Add new tags (comma-separated):</label>
-    <input type="text" id="addedTags" name="addedCustomTags"><br>
+    <input type="text" id="addedTags" name="newRawTagsString"><br>
     </p>
 
     <button type="submit">Save Attraction</button>
